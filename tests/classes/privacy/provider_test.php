@@ -27,10 +27,8 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require($CFG->dirroot.'/local/mr/bootstrap.php');
 require_once($CFG->dirroot.'/blocks/intelligent_learning/classes/privacy/provider.php');
-require_once($CFG->dirroot.'/privacy/tests/provider_test.php');
 
 use \core_privacy\local\request\transform;
-
 
 /**
  * Unit tests for block_intelligent_learning/classes/privacy/provider
