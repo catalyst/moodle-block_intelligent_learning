@@ -84,9 +84,9 @@ class blocks_intelligent_learning_model_service_course extends blocks_intelligen
 
         list($action, $data) = $this->helper->xmlreader->validate_xml($xml, $this);
 
-        if($action == 'course_grade_user' && empty($data['id'])){
+        if (($action == 'course_grade_user' || $action == 'course_assignments_list' || $action == 'course_assignment_grades') && empty($data['id'])){
 			throw new Exception('No id passed, required');
-		}else if (empty($data['idnumber']) && $action != 'course_grade_user') {
+		}else if (empty($data['idnumber']) && $action != 'course_grade_user' &&  $action != 'course_assignments_list' &&  $action != 'course_assignment_grades') {
             throw new Exception('No idnumber passed, required');
         }
 
@@ -105,6 +105,12 @@ class blocks_intelligent_learning_model_service_course extends blocks_intelligen
         switch($action) {
             case 'course_grade_user':          
                 return $this->course_grade_user($data);
+            break;
+            case 'course_assignments_list':          
+                return $this->course_assignments_list($data);
+            break;
+            case 'course_assignment_grades':          
+                return $this->course_assignment_grades($data);
             break;
             case 'create':
             case 'add':
@@ -333,6 +339,95 @@ class blocks_intelligent_learning_model_service_course extends blocks_intelligen
             if($grade->userid == $userId){
                 return $grade;
             }
+        }
+    }
+
+    protected function course_assignments_list($data){
+        try {
+            global $DB;   
+            $courseId = $data['id'];   
+           
+            $assignmentsSql = "SELECT a.id as assignmentid,
+                       a.itemname as assignmentname
+                       FROM {grade_items} a 
+                       WHERE a.courseid = ?
+                       AND a.itemtype = 'mod'
+                       AND a.itemname IS NOT NULL
+                       ORDER BY a.itemname";     
+            $assignmentRecords = $DB->get_records_sql($assignmentsSql, [$courseId]);
+            
+            $assignmentsList = [];
+            foreach ($assignmentRecords as $record) {
+                $assignmentsList[] = [
+                    'assignment' => [
+                        'id' => $record->assignmentid,
+                        'name' => $record->assignmentname
+                    ]
+                ];
+            }
+            
+            return $this->response->standard(['assignmentsList' => $assignmentsList]);
+           
+        } catch (Exception $e) {
+            throw new Exception("Failed to retrieve assignments for course {$courseId}: " . $e->getMessage());
+        }
+    }
+
+    protected function course_assignment_grades($data){
+        try {
+            global $DB;
+            
+            // Validate input
+            if (empty($data['id']) || !is_numeric($data['id'])) {
+                throw new Exception('Invalid or missing assignment ID');
+            }
+            
+            $assignmentId = (int)$data['id'];
+            
+            // Verify grade item exists and fetch it
+            $gradeitem = grade_item::fetch(['id' => $assignmentId]);
+            if (!$gradeitem) {
+                throw new Exception('Assignment not found');
+            }
+           
+            $assignmentGradesSql = "SELECT gg.userid as userid,
+                       gg.finalgrade as finalgrade,
+                       gg.timemodified as datemodified
+                       FROM {grade_grades} gg
+                       WHERE gg.itemid = ?"; 
+            $assignmentGradeRecords = $DB->get_records_sql($assignmentGradesSql, [$assignmentId]);
+    
+            $assignmentGrades = [];
+            foreach ($assignmentGradeRecords as $record) {
+                // Initialize grade data
+                $gradeData = [
+                    'userid' => $record->userid,
+                    'finalgrade' => $record->finalgrade,
+                    'datemodified' => $record->datemodified,
+                    'currentgradeRealLetter' => null,
+                    'currentgradeLetter' => null
+                ];
+                // Add letter grades if finalgrade is not null
+                if (!is_null($record->finalgrade)) {
+                    $gradeData['currentgradeRealLetter'] = grade_format_gradevalue(
+                        $record->finalgrade, $gradeitem, 
+                        true, 
+                        GRADE_DISPLAY_TYPE_REAL_LETTER
+                    );
+                    $gradeData['currentgradeLetter'] = grade_format_gradevalue(
+                        $record->finalgrade, 
+                        $gradeitem, 
+                        true, 
+                        GRADE_DISPLAY_TYPE_LETTER
+                    );
+                }
+                $assignmentGrades[] = ['grade' => $gradeData];
+            }
+            
+            return $this->response->standard(['assignmentgrades' => $assignmentGrades]);
+           
+        } catch (Exception $e) {
+            throw new Exception("Failed to retrieve assignment grades for assignment {$assignmentId}: " . $e->getMessage());
         }
     }
 
