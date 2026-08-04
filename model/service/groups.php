@@ -118,7 +118,7 @@ class blocks_intelligent_learning_model_service_groups extends blocks_intelligen
         if (property_exists($data, 'hidepicture') and is_null($data->hidepicture)) {
             $data->hidepicture = 0;
         }
-        $group = $DB->get_record('groups', array('courseid' => $data->courseid));
+        $group = $DB->get_record('groups', array('courseid' => $data->courseid, 'name' => $course->fullname));
 
         switch ($action) {
             case 'create':
