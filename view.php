@@ -44,6 +44,6 @@
  **/
 
 require_once('../../config.php');
-require($CFG->dirroot.'/local/mr/bootstrap.php');
+require_once($CFG->dirroot.'/blocks/intelligent_learning/locallib.php');
 
 mr_controller::render('blocks/intelligent_learning', 'pluginname', 'block_intelligent_learning');

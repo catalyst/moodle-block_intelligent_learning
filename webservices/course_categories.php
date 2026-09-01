@@ -47,7 +47,7 @@ define('NO_DEBUG_DISPLAY', true);
 define('NO_MOODLE_COOKIES', true);
 
 require_once('../../../config.php');
-require($CFG->dirroot.'/local/mr/bootstrap.php');
+require_once($CFG->dirroot.'/blocks/intelligent_learning/locallib.php');
 
 require_once($CFG->dirroot.'/blocks/intelligent_learning/model/response.php');
 require_once("$CFG->dirroot/blocks/intelligent_learning/model/service/course_categories.php");

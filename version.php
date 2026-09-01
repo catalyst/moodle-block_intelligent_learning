@@ -45,12 +45,11 @@
  *
  **/
     
-$plugin->version = 2026011601;
-$plugin->requires = 2015111610;	// Moodle 3.0.10 is required, PHP7 required
+$plugin->version = 2026082600;
+$plugin->requires = 2025100600; // Moodle 5.1.0
 $plugin->component = 'block_intelligent_learning';
-$plugin->release   = '3.2.10 (Build: 2026011601)';
+$plugin->release   = '3.2.11 (Build: 2026082600)';
 $plugin->dependencies = array(
-    'local_mr' => 2010090201,
     'mod_assign' => ANY_VERSION,
     'mod_quiz' => ANY_VERSION,
     'mod_lesson' => ANY_VERSION

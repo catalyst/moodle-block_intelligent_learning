@@ -126,7 +126,7 @@ class ilpapiclient {
         if (!$serviceresponse = curl_exec($ch)) {
             debugging("Error calling ILP service at $requesturl . $contents", DEBUG_NORMAL);
             debugging("Error: " . curl_error($ch), DEBUG_NORMAL);
-            throw error ("Unable to update grades. Please contact your system administrator.");
+            throw new moodle_exception('error', 'block_intelligent_learning', '', 'Unable to update grades. Please contact your system administrator.');
         } else {
             $httpstatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             if ($httpstatus == 200) {
@@ -136,7 +136,7 @@ class ilpapiclient {
             } else {
                 debugging("Error processing ILP service. Return code $httpstatus.", DEBUG_NORMAL);
                 debugging("Service response: " . $serviceresponse, DEBUG_NORMAL);
-                throw error("Unable to update grades. Please contact your system administrator");
+                throw new moodle_exception('error', 'block_intelligent_learning', '', 'Unable to update grades. Please contact your system administrator.');
             }
         }
 

@@ -33,10 +33,10 @@
  * @license http://opensource.org/licenses/gpl-3.0.html GNU Public License
  * @package block_intelligent_learning
  * @author Sam Chaffee
- */
+ */ 
 
 require_once($CFG->dirroot.'/blocks/intelligent_learning/model/service/abstract.php');
-include_once($CFG->dirroot.'/mod/quiz/attemptlib.php');
+include_once($CFG->dirroot.'/mod/quiz/locallib.php');
 /**
  * User service model
  *
@@ -425,7 +425,7 @@ class blocks_intelligent_learning_model_service_user extends blocks_intelligent_
                     $user = $this->add($data);
                 }
                 break;
-             case 'updatePronoun':
+            case 'updatePronoun':
                 if ($user) {
                     $this->updatePronoun($user, $data);
                 }
@@ -534,7 +534,6 @@ class blocks_intelligent_learning_model_service_user extends blocks_intelligent_
         }
     }
 
-    
      /**
      * Update a user with Pronoun data
      *
@@ -793,6 +792,7 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
      */
     private static function get_count_calendar_added($userid, array $courses, $startdate = null, $enddate = null, $reader) {
         global $DB;
+        try {
 	    if ($reader instanceof logstore_legacy\log\store) {
 	    	$coursecol = 'course';
 	    	$timecol = 'time';
@@ -829,6 +829,12 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
 
         $result = $DB->count_records_select($logtable, $select, $sql_param);
         return $result;
+
+        } catch (\Throwable $e) {
+            error_log("FATAL in get_count_calendar_added: " . $e->getMessage()
+                . " | file: " . $e->getFile() . ":" . $e->getLine());
+            return 0;
+        }
     }
 
     
@@ -846,16 +852,22 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
 
         global $DB;
 
+        try {
+
         $sql_param = array ();
         $sql_param['userid'] = $userid;
 
         list ($course_sql, $sql_param2) = $DB->get_in_or_equal($courses, SQL_PARAMS_NAMED);
         $sql_param = array_merge($sql_param, $sql_param2);
 
+        // Hardcode the value of quiz_attempt::IN_PROGRESS to avoid fatal error
+        // when mod/quiz/attemptlib.php is not available.
+        $sql_param['state'] = 'inprogress';
+
         $sql = "SELECT COUNT(DISTINCT(qa.quiz))
                                 FROM {quiz} q
                                 JOIN {quiz_attempts} qa ON q.id = qa.quiz
-                               WHERE q.course $course_sql AND qa.state =" . var_export(quiz_attempt::IN_PROGRESS, true) . "
+                               WHERE q.course $course_sql AND qa.state = :state
                                  AND qa.userid = :userid";
 
         if ($startdate !== null) {
@@ -868,6 +880,12 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
         }
 
         return $DB->count_records_sql($sql, $sql_param);
+
+        } catch (\Throwable $e) {
+            error_log("FATAL in get_count_assessments_begun: " . $e->getMessage()
+                . " | file: " . $e->getFile() . ":" . $e->getLine());
+            return 0;
+        }
 
     }
 
@@ -884,6 +902,8 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
     private static function get_count_assessments_finished($userid, array $courses, $startdate = null, $enddate = null) {
 
         global $DB;
+
+        try {
 
         $sql_param = array ();
         $sql_param['userid'] = $userid;
@@ -906,6 +926,12 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
         }
 
         return $DB->count_records_sql($sql, $sql_param);
+
+        } catch (\Throwable $e) {
+            error_log("FATAL in get_count_assessments_finished: " . $e->getMessage()
+                . " | file: " . $e->getFile() . ":" . $e->getLine());
+            return 0;
+        }
     }
 
     /**
@@ -921,6 +947,8 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
     private static function get_assignments_submissions($userid, array $courses, $startdate = null, $enddate = null) {
 
         global $DB;
+
+        try {
 
         $sql_param = array ();
         $sql_param['userid'] = $userid;
@@ -943,6 +971,12 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
         }
 
         return $DB->count_records_sql($sql, $sql_param);
+
+        } catch (\Throwable $e) {
+            error_log("FATAL in get_assignments_submissions: " . $e->getMessage()
+                . " | file: " . $e->getFile() . ":" . $e->getLine());
+            return 0;
+        }
     }
 
     /**
@@ -958,6 +992,8 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
     private static function get_assignments_read($userid, array $courses, $startdate = null, $enddate = null, $reader) {
 
         global $DB;
+
+        try {
 
         $sql_param = array ();
         $sql_param['userid'] = $userid;
@@ -993,6 +1029,12 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
         }
 
         return $DB->count_records_sql($sql, $sql_param);
+
+        } catch (\Throwable $e) {
+            error_log("FATAL in get_assignments_read: " . $e->getMessage()
+                . " | file: " . $e->getFile() . ":" . $e->getLine());
+            return 0;
+        }
     }
 
     /**
@@ -1008,6 +1050,8 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
     private static function get_count_contentpages_viewed($userid, array $courses, $startdate = null, $enddate = null, $reader) {
 
         global $DB;
+
+        try {
 
         $sql_param = array ();
         $sql_param['userid'] = $userid;
@@ -1046,6 +1090,12 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
         }
 
         return $DB->count_records_sql($sql, $sql_param);
+
+        } catch (\Throwable $e) {
+            error_log("FATAL in get_count_contentpages_viewed: " . $e->getMessage()
+                . " | file: " . $e->getFile() . ":" . $e->getLine());
+            return 0;
+        }
     }
 
     /**
@@ -1061,6 +1111,8 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
     private static function get_count_forum_posts($userid, array $courses, $startdate = null, $enddate = null) {
 
         global $DB;
+
+        try {
 
         $sql_param = array ();
         $sql_param['userid'] = $userid;
@@ -1083,6 +1135,12 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
         }
 
         return $DB->count_records_sql($sql, $sql_param);
+
+        } catch (\Throwable $e) {
+            error_log("FATAL in get_count_forum_posts: " . $e->getMessage()
+                . " | file: " . $e->getFile() . ":" . $e->getLine());
+            return 0;
+        }
     }
 
     /**
@@ -1098,6 +1156,8 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
     private static function get_count_forum_posts_read($userid, array $courses, $startdate = null, $enddate = null, $reader) {
 
         global $DB;
+
+        try {
 
         $sql_param = array ();
         $sql_param['userid'] = $userid;
@@ -1134,6 +1194,12 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
         }
 
         return $DB->count_records_sql($sql, $sql_param);
+
+        } catch (\Throwable $e) {
+            error_log("FATAL in get_count_forum_posts_read: " . $e->getMessage()
+                . " | file: " . $e->getFile() . ":" . $e->getLine());
+            return 0;
+        }
     }
 
     /**
@@ -1149,6 +1215,8 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
     private static function get_count_sessions($userid, $courses, $startdate = null, $enddate = null, $reader) {
 
         global $DB;
+
+        try {
 
 	    if ($reader instanceof logstore_legacy\log\store) {
 	    	$timecol = 'time';
@@ -1194,6 +1262,12 @@ private function get_upcoming_calendar($courses, $groups, $users, $daysinfuture,
             $where .= " AND $timecol < :enddate";
         }
         return $DB->count_records_select($logtable, $where, $sql_params);
+
+        } catch (\Throwable $e) {
+            error_log("FATAL in get_count_sessions: " . $e->getMessage()
+                . " | file: " . $e->getFile() . ":" . $e->getLine());
+            return 0;
+        }
     }
     
     /**
