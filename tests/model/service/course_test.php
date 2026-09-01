@@ -2,7 +2,7 @@
 
 global $CFG;
 
-require($CFG->dirroot.'/local/mr/bootstrap.php');
+require_once($CFG->dirroot.'/blocks/intelligent_learning/locallib.php');
 require_once($CFG->dirroot.'/blocks/intelligent_learning/model/service/course.php');
 require_once($CFG->dirroot.'/blocks/intelligent_learning/model/response.php');
 

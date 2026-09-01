@@ -34,6 +34,7 @@
  * ILP helper functions
  *
  **/
+require_once(__DIR__ . '/ilpapiclient.php');
 
 class ilpsislib {
     public function __construct() {

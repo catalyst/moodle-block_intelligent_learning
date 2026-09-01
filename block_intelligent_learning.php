@@ -42,7 +42,7 @@
  * @author Sam Chaffee
  * @package block_intelligent_learning
  **/
-require($CFG->dirroot . '/local/mr/bootstrap.php');
+require_once($CFG->dirroot . '/blocks/intelligent_learning/locallib.php');
 class block_intelligent_learning extends block_list {
     public function init() {
         $this->title = get_string('pluginname', 'block_intelligent_learning');
